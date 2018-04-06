@@ -8,11 +8,11 @@
  * @link      https://dolphiq.nl/
  */
 
-namespace dolphiq\jsonclient;
+namespace loca\jsonclient;
 
 use Craft;
 use craft\base\Plugin;
-use dolphiq\jsonclient\twigextensions\JsonClientTwigExtension;
+use loca\jsonclient\twigextensions\JsonClientTwigExtension;
 
 
 // use dolphiq\jsonclient\controllers\jsonclientController;
@@ -37,6 +37,6 @@ class JsonClientPlugin extends \craft\base\Plugin
 
         Craft::$app->view->twig->addExtension(new JsonClientTwigExtension());
 
-        Craft::info('dolphiq/jsonclient plugin loaded', __METHOD__);
+        Craft::info('loca/jsonclient plugin loaded', __METHOD__);
     }
 }

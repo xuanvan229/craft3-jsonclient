@@ -1,8 +1,8 @@
 <?php
 
-namespace dolphiq\jsonclient\twigextensions;
+namespace loca\jsonclient\twigextensions;
 
-use dolphiq\jsonclient\jsonclient;
+use loca\jsonclient\jsonclient;
 
 use Twig_Extension;
 use Twig_SimpleFilter;
@@ -39,6 +39,10 @@ class JsonClientTwigExtension extends Twig_Extension
      * @param  string  $file
      * @return string
      */
+    public function getCookie(){
+    	return Craft::$app->config->general->coolie;
+    }
+
     public function fetchJson($options = [])
     {
         //return \view::render('settings', []);
@@ -47,19 +51,20 @@ class JsonClientTwigExtension extends Twig_Extension
         if (!isset($options['url'])) {
           die('Required url parameter not set!');
         }
-
-        $data = self::getUrl($options['url']);
+	$cookie = self::getCookie
+        $data = self::getUrl($options['url'i], $cookie);
 
         return json_decode($data, true);
 
     }
 
 		// Function for cURL
-		private static function getUrl($url) {
+		private static function getUrl($url, $cookie) {
 			error_reporting(0);
 
 			$ch = curl_init();
 			curl_setopt($ch, CURLOPT_URL, $url);
+			curl_setopt($ch, CURLOPT_HTTPHEADER, array("Cookie: {$cookie}));
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 			$store = curl_exec($ch);
 			curl_close($ch);

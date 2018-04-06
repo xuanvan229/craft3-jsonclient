@@ -7,7 +7,7 @@
  * @link      https://dolphiq.nl/
  */
 
-namespace dolphiq\jsonclient\migrations;
+namespace loca\jsonclient\migrations;
 
 use Craft;
 use craft\config\DbConfig;

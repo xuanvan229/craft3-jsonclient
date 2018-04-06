@@ -1,5 +1,5 @@
 {
-    "name": "dolphiq/jsonclient",
+    "name": "loca/jsonclient",
     "description": "Simple Json client plugin for Craft3 CMS. The plugin provides a simple Twig extension which allows you to fetch a Json url and return it to your Twig template.",
     "type": "craft-plugin",
     "version": "1.0.1",
@@ -16,9 +16,9 @@
     "license": "MIT",
     "authors": [
         {
-            "name": "Johan Zandstra",
-            "email": "info@dolphiq.nl",
-            "homepage": "https://dolphiq.nl/"
+            "name": "Hong Xuan",
+            "email": "xuanvan229@gmail.com",
+            "homepage": "github.com/xuanvan229"
         }
     ],
     "require": {
@@ -26,20 +26,20 @@
     },
     "autoload": {
         "psr-4": {
-          "dolphiq\\jsonclient\\": "src/"
+          "loca\\jsonclient\\": "src/"
         }
     },
     "extra": {
         "name": "Json Client",
         "handle": "jsonclient",
         "schemaVersion": "1.0.0",
-        "developer": "Dolphiq",
-        "developerUrl": "https://dolphiq.nl/",
+        "developer": "Hong Xuan",
+        "developerUrl": "https://github.com/xuanvan229",
         "description": "Simple Json client plugin for Craft3 CMS. The plugin provides a simple Twig extension which allows you to fetch a Json url and return it to your Twig template.",
         "hasCpSettings": false,
         "hasCpSection": false,
-        "documentationUrl": "https://github.com/Dolphiq/craft3-jsonclient/blob/master/README.md",
-        "changelogUrl": "https://github.com/Dolphiq/craft3-jsonclient/blob/master/CHANGELOG.md",
-        "class": "dolphiq\\jsonclient\\JsonClientPlugin"
+        "documentationUrl": "https://github.com/xuanvan229/craft3-jsonclient/blob/master/README.md",
+        "changelogUrl": "https://github.com/xuanvan229/craft3-jsonclient/blob/master/CHANGELOG.md",
+        "class": "loca\\jsonclient\\JsonClientPlugin"
     }
 }
