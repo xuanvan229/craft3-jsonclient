@@ -18,7 +18,6 @@ use loca\jsonclient\twigextensions\JsonClientTwigExtension;
 // use dolphiq\jsonclient\controllers\jsonclientController;
 
 
-use craft\base\Object;
 
 class JsonClientPlugin extends \craft\base\Plugin
 {
