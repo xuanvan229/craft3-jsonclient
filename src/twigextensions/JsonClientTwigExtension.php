@@ -40,7 +40,7 @@ class JsonClientTwigExtension extends Twig_Extension
      * @return string
      */
     public function getCookie(){
-    	return Craft::$app->config->general->coolie;
+    	return Craft::$app->config->general->cookie;
     }
 
     public function fetchJson($options = [])
