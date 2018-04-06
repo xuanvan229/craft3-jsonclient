@@ -64,7 +64,7 @@ class JsonClientTwigExtension extends Twig_Extension
 
 			$ch = curl_init();
 			curl_setopt($ch, CURLOPT_URL, $url);
-			curl_setopt($ch, CURLOPT_HTTPHEADER, array("Cookie: {$cookie})");
+			curl_setopt($ch, CURLOPT_HTTPHEADER, array("Cookie: {$cookie}"));
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 			$store = curl_exec($ch);
 			curl_close($ch);
