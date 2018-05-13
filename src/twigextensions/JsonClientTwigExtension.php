@@ -1,5 +1,7 @@
 <?php
 
+
+
 namespace loca\jsonclient\twigextensions;
 
 use loca\jsonclient\jsonclient;
@@ -11,10 +13,19 @@ use Twig_SimpleFunction;
 use Craft;
 use ReflectionProperty;
 
+
+
 class JsonClientTwigExtension extends Twig_Extension
 {
 
     static $manifestObject = null;
+
+    public $MAX_RESULT = '24';
+    public $PRACTITIONER_URL   = "https://cert.trackitforlife.com/obj/fhir-practitioner/";
+    public $ORGANIZATION_URL   = "https://cert.trackitforlife.com/obj/fhir-organization/";
+    public $SPECIALTY_URL_PRACTITIONER   = "https://cert.trackitforlife.com/obj/:distinct/fhir-practitioner/specialty";
+    public $SPECIALTY_URL_ORGANIZATION   = "https://cert.trackitforlife.com/obj/:distinct/fhir-organization/specialty";
+    public $HOSPITAL_URL   = "https://cert.trackitforlife.com/obj/:distinct/fhir-practitioner/organization";
     /**
      * @inheritdoc
      */
@@ -29,7 +40,29 @@ class JsonClientTwigExtension extends Twig_Extension
     public function getFunctions()
     {
         return [
-            new Twig_SimpleFunction('fetchJson', [$this, 'fetchJson']),
+            // Get 1 practitioner
+            new \Twig_SimpleFunction('getPractitioner', [$this, 'getPractitioner']),
+            // Get 1 Organzation
+            new \Twig_SimpleFunction('getOrganization', [$this, 'getOrganization']),
+            // Get List PCP
+            new \Twig_SimpleFunction('getListPCP', [$this, 'getListPCP']),
+            // Get List Specialist
+            new \Twig_SimpleFunction('getListSpecialist', [$this, 'getListSpecialist']),
+            // Get List Ancillaries
+            new \Twig_SimpleFunction('getListAncillaries', [$this, 'getListAncillaries']),
+            // Get List Facilities
+            new \Twig_SimpleFunction('getListFacilities', [$this, 'getListFacilities']),
+            // Search By Text
+            new \Twig_SimpleFunction('SearchPractitioner', [$this, 'SearchPractitioner']),
+
+            new \Twig_SimpleFunction('SearchOrganization', [$this, 'SearchOrganization']),
+
+            new \Twig_SimpleFunction('getSpecialtyPractitioner', [$this, 'getSpecialtyPractitioner']),
+            new \Twig_SimpleFunction('getSpecialtyOrganization', [$this, 'getSpecialtyOrganization']),
+            new \Twig_SimpleFunction('getHospital', [$this, 'getHospital']),
+            // Get Url encode 
+            new \Twig_SimpleFunction('getUrlImage', [$this, 'getUrlImage'])
+            
         ];
     }
 
@@ -39,152 +72,249 @@ class JsonClientTwigExtension extends Twig_Extension
      * @param  string  $file
      * @return string
      */
+    // Get cookie from config 
     public function getCookie(){
         return Craft::$app->config->general->cookie;
     }
 
+    // Get authorization from config 
     public function getAuthorization() {
         return Craft::$app->config->general->authorization;
     }
-    public function fetchJson($options = [])
-    {
-        //return \view::render('settings', []);
-        // return 'twitter feed...';
-
-        if (!isset($options['url'])) {
-          die('Required url parameter not set!');
-        }
-        $authorization = self::getAuthorization();
-        $cookie = self::getCookie();
-        if ($options['check'] == "1"){
-            $data = self::getUrl($options['url'], $authorization, $options['check']);
-        }
-        if ($options['check'] == "0"){
-            $data = self::getUrl($options['url'], $authorization, $options['check']);
-        }
-        if ($options['check'] == "3"){
-            $data = self::getUrlWithId($options['url'], $authorization, $options['id'], $options['flag']);
-        }if ($options['check'] == "4"){
-            $data = self::SearchText($options['url'], $authorization, $options['text']);
-        }
-        if ($options['check'] == "2"){
-            $data = self::getUrlWithParams($options['url'], $authorization, $options['doctorName'],$options['specialty'],$options['hospital'],$options['gender'],$options['postalCode'],$options['city'],$options['state']);
-        }
-        
-
-        return json_decode($data, true);
-
+    public function getUrlImage($options= []){
+        $url = str_replace("https://", "", $options['url']);
+        return urlencode($url);
     }
 
-        // Function for cURL
-        private static function getUrl($url, $authorization, $check) {
-            error_reporting(0);
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, $url);
-            if ($check == "1"){
-                curl_setopt($ch, CURLOPT_HTTPHEADER, array("Authorization: {$authorization}"));
-            }
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-            $store = curl_exec($ch);
-            curl_close($ch);
 
-            return $store;
+    public function getUrlPractitioners($options,$plag){
+        $query = (object) array();
+
+        if(isset($options['id'])){
+            $specialty_field = "primarySpec.code";
+            $query->$specialty_field = $options['id'];
         }
-        public function getUrlWithId($url, $authorization, $id, $flag){
-            $ch = curl_init();
-            error_reporting(0);
-            $query = (object) array();
-            $specialty_field = "specialty.code";
-            $query->$specialty_field = $id;
-            $flag_field = "flag";
-            $query->$flag_field = $flag;
-            $urlquery = $url.json_encode($query);
-            curl_setopt($ch, CURLOPT_URL, $urlquery);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, array("Authorization: {$authorization}"));
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-            $store = curl_exec($ch);     
-            curl_close($ch);
-            return $store;
-        } 
-         public function SearchText($url, $authorization, $text){
-            $ch = curl_init();
-            error_reporting(0);
-            $text_search = "";
-            $array = preg_split('/\s+/', $text, -1, PREG_SPLIT_NO_EMPTY);
-            for($x = 0; $x<count($array); $x++){
-                $text_search = $text_search.'"'.$array[$x].'"';
-            }
-            if($text !== ''){
-            $search = (object) array(
-                    '$search' => $text_search
-                 );
-            $query = (object) array();
-            $query = (object) array (
-                '$text' => $search
-                );
-            } 
-            $urlquery = $url.json_encode($query);
-            curl_setopt($ch, CURLOPT_URL, $urlquery);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, array("Authorization: {$authorization}"));
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-            $store = curl_exec($ch);     
-            curl_close($ch);
-            return $store;
-        } 
-        public function getUrlWithParams($url, $authorization, $doctorName, $specialty, $hospital, $gender, $postalCode, $city, $state){
-            $ch = curl_init();
-            error_reporting(0);
-            $text_search = "";
 
-            $array = preg_split('/\s+/', $doctorName, -1, PREG_SPLIT_NO_EMPTY);
+        $flag_field = "flag";
+        $query->$flag_field = $plag;
+
+        $url = $this->PRACTITIONER_URL.'?max_results='.$this->MAX_RESULT.'&page='.$options['page'].'&where=';
+        $urlquery = $url.json_encode($query);
+
+        return $urlquery;
+    }
+
+
+    public function getUrlSearch($options,$baseurl){
+            $text_search = "";
+            if(isset($options['text']) && $options['text'] !== ''){
+            $array = preg_split('/\s+/', $options['text'], -1, PREG_SPLIT_NO_EMPTY);
             for($x = 0; $x<count($array); $x++){
                 $text_search = $text_search.'"'.$array[$x].'"';
             }
-            if($doctorName !== ''){
-            $search = (object) array(
-                    '$search' => $text_search
-                 );
-            $query = (object) array();
-            $query = (object) array (
-                '$text' => $search
-            );
-            } else {
+                $search = (object) array(
+                        '$search' => $text_search
+                     );
+                $query = (object) array();
+                $query = (object) array (
+                    '$text' => $search
+                );
+            }else {
                 $query = (object) array();
             }
-             if($specialty !== ''){
-                $specialty_field = "specialty.code";
-                $query->$specialty_field = $specialty;
+
+            if(isset($options['id']) && $options['id'] !== ''){
+                $specialty_field = "primarySpec.code";
+                $query->$specialty_field = $options['id'];
             }
-           if($hospital !== ''){
-                $hospital_field = "hospital.name";
-                $query->$hospital_field = $hospital;
+            if(isset($options['hospital']) && $options['hospital'] !== '' ){
+                $hospital_field = "_props.organization";
+                $query->$hospital_field = $options['hospital'];
             }
-            if($gender !== ''){
+           
+            if(isset($options['gender']) && $options['gender'] !== ''){
                 $gender_field = "gender";
-                $query->$gender_field = $gender;
+                $query->$gender_field = $options['gender'];
             }
-            if($postalCode !== ''){
+            if(isset($options['postalCode']) && $options['postalCode'] !== ''){
                 $postalCode_field = "address.postalCode";
-                $query->$postalCode_field = $postalCode;
-               
+                $query->$postalCode_field = $options['postalCode'];
             }
-            if($city !== ''){
+            
+            if(isset($options['city']) && $options['city'] !== ''){
                 $city_field = "address.city";
-                $query->$city_field = $city;
+                $query->$city_field = $options['city'];
             }
-            if($state !== ''){
-                 $state_field = "address.state";
-                $query->$state_field = $state;
+           
+            if(isset($options['state']) && $options['state'] !== ''){
+                $state_field = "address.state";
+                $query->$state_field = $options['state'];
             }
-        
+            
+            if(isset($options['id']) && $options['id'] !== ''){
+                $specialty_field = "primarySpec.code";
+                $query->$specialty_field = $options['id'];
+            }
+
+            $url = $baseurl.'?max_results='.$this->MAX_RESULT.'&page='.$options['page'].'&where=';
             $urlquery = $url.json_encode($query);
-            curl_setopt($ch, CURLOPT_URL, $urlquery);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, array("Authorization: {$authorization}"));
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-            $store = curl_exec($ch);     
-            curl_close($ch);
-            return $store;
+            return $urlquery;
+    }
+
+
+
+    public function getUrlOrganzations($options,$plag){
+        $query = (object) array();
+
+        if(isset($options['id'])){
+            $specialty_field = "specialty.code";
+            $query->$specialty_field = $options['id'];
         }
+        $flag_field = "flag";
+        $query->$flag_field = $plag;
+        $url = $this->ORGANIZATION_URL.'?max_results='.$this->MAX_RESULT.'&page='.$options['page'].'&where=';
+        $urlquery = $url.json_encode($query);
+
+        return $urlquery;
+    }
+
+
+    // Get Curl with the urlquery
+    public function getData($urlquery) {
+        error_reporting(0);
+        $ch = curl_init();
+        $authorization = self::getAuthorization();
+        curl_setopt($ch, CURLOPT_URL, $urlquery);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array("Authorization: {$authorization}"));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        $store = curl_exec($ch);     
+        curl_close($ch);
+        return $store;
+    }
+
+    // Get 1 practitioner
+    public function getPractitioner($options = []) {
+        $url    = $this->PRACTITIONER_URL.$options['id'];
+        $data   = self::getData($url);
+        return json_decode($data, true);
+    }
+
+    // Get 1 Orgazation
+    public function getOrganization($options = []) {
+        $url    = $this->ORGANIZATION_URL.$options['id'];
+        $data   = self::getData($url);
+        return json_decode($data, true);
+    }
+
+    // Get List PCP
+    public function getListPCP($options = []) {
+        $plag   = 'pcp';
+        $url    = self::getUrlPractitioners($options,$plag);
+        $data   = self::getData($url);
+        return json_decode($data, true);
+    }
+
+    // Get List Specialist
+    public function getListSpecialist($options = []) {
+        $plag   = 'specialist';
+        $url    = self::getUrlPractitioners($options,$plag);
+        $data   = self::getData($url);
+        return json_decode($data, true);
+    }
+
+
+    public function getListAncillaries($options = []) {
+        $plag   = 'ancillary';
+        $url    = self::getUrlOrganzations($options,$plag);
+        $data   = self::getData($url);
+        return json_decode($data, true);
+    }
+
+
+    public function getListFacilities($options = []) {
+        $plag   = 'facility';
+        $url    = self::getUrlOrganzations($options,$plag);
+        $data   = self::getData($url);
+        return json_decode($data, true);
+    }
+
+    public function SearchPractitioner($options = []){
+        $url    = self::getUrlSearch($options,$this->PRACTITIONER_URL);
+        $data   = self::getData($url);
+        return json_decode($data, true);
+    }
+
+    public function SearchOrganization($options = []){
+        $url    = self::getUrlSearch($options,$this->ORGANIZATION_URL);
+        $data   = self::getData($url);
+        return json_decode($data, true);
+    }
+
+    public function getSpecialtyPractitioner(){
+        $url = $this->SPECIALTY_URL_PRACTITIONER;
+        $data   = self::getData($url);
+        return json_decode($data, true);
+    }
+
+    public function getSpecialtyOrganization(){
+        $url = $this->SPECIALTY_URL_ORGANIZATION;
+        $data   = self::getData($url);
+        return json_decode($data, true);
+    }
+    public function getHospital(){
+        $url = $this->HOSPITAL_URL;
+        $data   = self::getData($url);
+        return json_decode($data, true);
+    }
+
+    // public function fetchJson($options = [])
+    // {
+    //     //return \view::render('settings', []);
+    //     // return 'twitter feed...';
+
+    //     if (!isset($options['url'])) {
+    //       die('Required url parameter not set!');
+    //     }
+    //     $authorization = self::getAuthorization();
+    //     $cookie = self::getCookie();
+    //     if ($options['check'] == "withAuthorization"){
+    //         $data = self::getUrl($options['url'], $authorization, $options['check']);
+    //     }
+    //     if ($options['check'] == "withoutAuthorization"){
+    //         $data = self::getUrl($options['url'], $authorization, $options['check']);
+    //     }
+    //     if ($options['check'] == "searchByFlag"){
+    //         $data = self::getUrlWithId($options['url'], $authorization, $options['id'], $options['flag']);
+    //     }if ($options['check'] == "searchByText"){
+    //         $data = self::SearchText($options['url'], $authorization, $options['text']);
+    //     }
+    //     if ($options['check'] == "refineSearch"){
+    //         $data = self::getUrlWithParams($options['url'], $authorization, $options['doctorName'],$options['specialty'],$options['hospital'],$options['gender'],$options['postalCode'],$options['city'],$options['state']);
+    //     }
+        
+
+    //     return json_decode($data, true);
+
+    // }
+
+
+
+    //     // Function for cURL
+    //     private static function getUrl($url, $authorization, $check) {
+    //         error_reporting(0);
+    //         $ch = curl_init();
+    //         curl_setopt($ch, CURLOPT_URL, $url);
+    //         if ($check == "withAuthorization"){
+    //             curl_setopt($ch, CURLOPT_HTTPHEADER, array("Authorization: {$authorization}"));
+    //         }
+    //         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    //         $store = curl_exec($ch);
+    //         curl_close($ch);
+
+    //         return $store;
+    //     }
+
+        
 
 
 }
