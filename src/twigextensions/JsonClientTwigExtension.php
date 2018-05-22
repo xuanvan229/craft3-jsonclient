@@ -15,17 +15,40 @@ class JsonClientTwigExtension extends Twig_Extension
     static $manifestObject = null;
 
     public $MAX_RESULT = '24';
-    public $PRACTITIONER_URL = Craft::$app->config->general->tiflPractitionerUrl;
-    public $ORGANIZATION_URL = Craft::$app->config->general->tiflOrganizationUrl;
-    public $SPECIALTY_URL_PRACTITIONER = Craft::$app->config->general->tiflSpecialtyUrlPractitioner;
-    public $SPECIALTY_URL_ORGANIZATION = Craft::$app->config->general->tiflSpecialtyUrlPractitioner;
-    public $HOSPITAL_URL = Craft::$app->config->general->tiflHospitalUrl;
+    // public $PRACTITIONER_URL = Craft::$app->config->general->tiflPractitionerUrl;
+    // public $ORGANIZATION_URL = Craft::$app->config->general->tiflOrganizationUrl;
+    // public $SPECIALTY_URL_PRACTITIONER = Craft::$app->config->general->tiflSpecialtyUrlPractitioner;
+    // public $SPECIALTY_URL_ORGANIZATION = Craft::$app->config->general->tiflSpecialtyUrlPractitioner;
+    // public $HOSPITAL_URL = Craft::$app->config->general->tiflHospitalUrl;
     /**
      * @inheritdoc
      */
     public function getName()
     {
         return 'JsonClient';
+    }
+
+    public function getUrl($type)
+    { 
+        $url = "";
+        switch ($type) {
+            case "tiflPractitionerUrl": 
+                $url = Craft::$app->config->general->tiflPractitionerUrl;
+                break;
+            case "tiflOrganizationUrl":
+                $url = Craft::$app->config->general->tiflOrganizationUrl;
+                break;
+            case "tiflSpecialtyUrlPractitioner": 
+                $url = Craft::$app->config->general->tiflSpecialtyUrlPractitioner;
+                break;
+            case "tiflSpecialtyUrlOrganization":
+                $url = Craft::$app->config->general->tiflSpecialtyUrlOrganization;
+                break;
+            case "tiflHospitalUrl":
+                $url = Craft::$app->config->general->tiflHospitalUrl;
+                break;
+        } 
+        return $url;
     }
 
     /**
@@ -84,6 +107,8 @@ class JsonClientTwigExtension extends Twig_Extension
     public function getUrlPractitioners($options,$plag) {
         $query = (object) array();
 
+        $baseUrl = self::getUrl("tiflPractitionerUrl");
+
         if(isset($options['id'])){
             $specialty_field = "primarySpec.code";
             $query->$specialty_field = $options['id'];
@@ -92,7 +117,7 @@ class JsonClientTwigExtension extends Twig_Extension
         $flag_field = "flag";
         $query->$flag_field = $plag;
 
-        $url = $this->PRACTITIONER_URL.'?max_results='.$this->MAX_RESULT.'&page='.$options['page'].'&where=';
+        $url = $baseUrl.'?max_results='.$this->MAX_RESULT.'&page='.$options['page'].'&where=';
         $urlquery = $url.json_encode($query);
 
         return $urlquery;
@@ -163,13 +188,15 @@ class JsonClientTwigExtension extends Twig_Extension
     public function getUrlOrganzations($options,$plag){
         $query = (object) array();
 
+        $baseUrl = self::getUrl("tiflOrganizationUrl");
+
         if(isset($options['id'])){
             $specialty_field = "specialty.code";
             $query->$specialty_field = $options['id'];
         }
         $flag_field = "flag";
         $query->$flag_field = $plag;
-        $url = $this->ORGANIZATION_URL.'?max_results='.$this->MAX_RESULT.'&page='.$options['page'].'&where=';
+        $url = $baseUrl.'?max_results='.$this->MAX_RESULT.'&page='.$options['page'].'&where=';
         $urlquery = $url.json_encode($query);
 
         return $urlquery;
@@ -190,14 +217,16 @@ class JsonClientTwigExtension extends Twig_Extension
 
     // Get 1 practitioner
     public function getPractitioner($options = []) {
-        $url    = $this->PRACTITIONER_URL.$options['id'];
+        $baseUrl = self::getUrl("tiflPractitionerUrl");
+        $url    = $baseUrl.$options['id'];
         $data   = self::getData($url);
         return json_decode($data, true);
     }
 
     // Get 1 Orgazation
     public function getOrganization($options = []) {
-        $url    = $this->ORGANIZATION_URL.$options['id'];
+        $baseUrl = self::getUrl("tiflOrganizationUrl");
+        $url    = $baseUrl.$options['id'];
         $data   = self::getData($url);
         return json_decode($data, true);
     }
@@ -233,31 +262,37 @@ class JsonClientTwigExtension extends Twig_Extension
     }
 
     public function searchPractitioner($options = []){
-        $url    = self::getUrlSearch($options,$this->PRACTITIONER_URL);
+        $baseUrl = self::getUrl("tiflPractitionerUrl");
+        $url    = self::getUrlSearch($options,$baseUrl);
         $data   = self::getData($url);
         return json_decode($data, true);
     }
 
     public function searchOrganization($options = []){
-        $url    = self::getUrlSearch($options,$this->ORGANIZATION_URL);
+        $baseUrl = self::getUrl("tiflOrganizationUrl");
+        $url    = self::getUrlSearch($options,$baseUrl);
         $data   = self::getData($url);
         return json_decode($data, true);
     }
 
     public function getSpecialtyPractitioner(){
-        $url = $this->SPECIALTY_URL_PRACTITIONER;
+        $baseUrl = self::getUrl("tiflSpecialtyUrlPractitioner");
+
+        $url = $baseUrl;
         $data   = self::getData($url);
         return json_decode($data, true);
     }
 
     public function getSpecialtyOrganization(){
-        $url = $this->SPECIALTY_URL_ORGANIZATION;
+        $baseUrl = self::getUrl("tiflSpecialtyUrlOrganization");
+        $url = $baseUrl;
         $data   = self::getData($url);
         return json_decode($data, true);
     }
 
     public function getHospital(){
-        $url = $this->HOSPITAL_URL;
+        $baseUrl = self::getUrl("tiflHospitalUrl");
+        $url = $baseUrl;
         $data   = self::getData($url);
         return json_decode($data, true);
     }
