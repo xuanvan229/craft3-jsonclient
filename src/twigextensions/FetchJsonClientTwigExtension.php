@@ -1,7 +1,7 @@
 <?php
-namespace tifl\jsonclient\twigextensions;
+namespace loca\jsonclient\twigextensions;
 
-use tifl\jsonclient\jsonclient;
+use loca\jsonclient\jsonclient;
 
 use Twig_Extension;
 use Twig_SimpleFilter;
