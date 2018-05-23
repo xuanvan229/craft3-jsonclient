@@ -12,7 +12,7 @@ namespace loca\jsonclient;
 
 use Craft;
 use craft\base\Plugin;
-use loca\jsonclient\twigextensions\JsonClientTwigExtension;
+use loca\jsonclient\twigextensions\FetchJsonClientTwigExtension;
 
 
 // use dolphiq\jsonclient\controllers\jsonclientController;
@@ -34,7 +34,7 @@ class JsonClientPlugin extends \craft\base\Plugin
 
         self::$plugin = $this;
 
-        Craft::$app->view->twig->addExtension(new JsonClientTwigExtension());
+        Craft::$app->view->twig->addExtension(new FetchJsonClientTwigExtension());
 
         Craft::info('loca/jsonclient plugin loaded', __METHOD__);
     }

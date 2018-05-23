@@ -10,7 +10,7 @@ use Twig_SimpleFunction;
 use Craft;
 use ReflectionProperty;
 
-class JsonClientTwigExtension extends Twig_Extension
+class FetchJsonClientTwigExtension extends Twig_Extension
 {
     static $manifestObject = null;
 
